@@ -1,0 +1,7 @@
+{
+  "name": "Proteside checkout protection",
+  "description": "Loads the Proteside client-side protection (PCI DSS 4.0 requirements 6.4.3 and 11.6.1) as the first script of your payment pages.",
+  "version": "1.0.0",
+  "author": "Proteside",
+  "link": "https://proteside.com"
+}

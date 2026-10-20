@@ -1,0 +1,256 @@
+{{ header }}{{ column_left }}
+{% set badge = {'success': 'bg-success', 'warning': 'bg-warning text-dark', 'danger': 'bg-danger', 'neutral': 'bg-secondary'} %}
+{% set alert = {'success': 'alert-success', 'info': 'alert-info', 'warning': 'alert-warning', 'danger': 'alert-danger'} %}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="float-end">
+        <button type="submit" form="form-module" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa-solid fa-save"></i></button>
+        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a></div>
+      <h1>{{ heading_title }}</h1>
+      <ol class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+          <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+  <div class="container-fluid">
+    {% if error_warning %}
+      <div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> {{ error_warning }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endif %}
+    {% if success %}
+      <div class="alert alert-success alert-dismissible"><i class="fa-solid fa-circle-check"></i> {{ success }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endif %}
+
+    <p class="text-muted">{{ text_description }}</p>
+
+    {% if stores|length > 1 %}
+      <div class="row mb-3">
+        <label for="input-store" class="col-sm-2 col-form-label">{{ text_store_settings }}</label>
+        <div class="col-sm-10">
+          <select id="input-store" class="form-select" onchange="location = this.value;">
+            {% for store in stores %}
+              <option value="{{ store.href }}"{% if store.store_id == store_id %} selected{% endif %}>{{ store.name|e }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      {% if inherits %}
+        <div class="alert alert-info"><i class="fa-solid fa-circle-info"></i> {{ text_store_inherits }}</div>
+      {% endif %}
+    {% endif %}
+
+    <div class="card mb-3" id="proteside-status">
+      <div class="card-header"><i class="fa-solid fa-shield-halved"></i> {{ text_section_status }}</div>
+      <div class="card-body">
+        <p class="fs-6">
+          <span class="badge {{ badge[ps_status_tone] }} fs-6">{{ ps_status_text }}</span>
+          {% if ps_plan_text %}<span class="ms-2">{{ ps_plan_text|e }}</span>{% endif %}
+          {% if ps_checked_text %}<span class="ms-2 text-muted">{{ ps_checked_text }}</span>{% endif %}
+        </p>
+        <p><strong>{{ text_decision }}</strong> <span class="{{ ps_decision_active ? 'text-success' : 'text-danger' }}">{{ ps_decision_text }}</span></p>
+        {% for notice in ps_notices %}
+          <div class="alert {{ alert[notice.tone] }} py-2">{{ notice.text|e }}</div>
+        {% endfor %}
+        <a href="{{ check }}" class="btn btn-outline-primary"><i class="fa-solid fa-rotate"></i> {{ button_check_status }}</a>
+        <a href="{{ ps_dashboard_url }}" target="_blank" rel="noopener" class="btn btn-link"><i class="fa-solid fa-arrow-up-right-from-square"></i> {{ button_open_dashboard }}</a>
+        <span class="text-muted">{{ text_no_account }} <a href="{{ ps_plans_url }}" target="_blank" rel="noopener">{{ button_get_proteside }}</a></span>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header"><i class="fa-solid fa-pencil"></i> {{ text_edit }}</div>
+      <div class="card-body">
+        <form id="form-module" action="{{ save }}" method="post" data-oc-toggle="ajax">
+          <fieldset>
+            <legend>{{ text_section_activation }}</legend>
+            <div class="row mb-3">
+              <label class="col-sm-3 col-form-label" for="input-status">{{ entry_status }}</label>
+              <div class="col-sm-9">
+                <div class="form-check form-switch form-switch-lg">
+                  <input type="hidden" name="module_proteside_status" value="0"/>
+                  <input type="checkbox" name="module_proteside_status" value="1" id="input-status" class="form-check-input"{% if module_proteside_status %} checked{% endif %}/>
+                </div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label class="col-sm-3 col-form-label" for="input-sdk-key">{{ entry_sdk_key }}</label>
+              <div class="col-sm-9">
+                <input type="text" name="module_proteside_sdk_key" value="{{ module_proteside_sdk_key|e }}" placeholder="pk_live_…" id="input-sdk-key" class="form-control font-monospace" autocomplete="off" spellcheck="false"/>
+                <div id="error-sdk-key" class="invalid-feedback"></div>
+                <div class="form-text">{{ help_sdk_key }}</div>
+              </div>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>{{ text_section_pages }}</legend>
+            <div class="row mb-3">
+              <div class="col-sm-9 offset-sm-3">
+                {% for group in page_groups %}
+                  <div class="form-check">
+                    <input type="hidden" name="module_proteside_pages[{{ group.code }}]" value="0"/>
+                    <input type="checkbox" name="module_proteside_pages[{{ group.code }}]" value="1" id="input-page-{{ group.code }}" class="form-check-input"{% if module_proteside_pages[group.code] %} checked{% endif %}/>
+                    <label for="input-page-{{ group.code }}" class="form-check-label">{{ group.label }}</label>
+                  </div>
+                {% endfor %}
+                <div class="form-text">{{ help_pages }}</div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label class="col-sm-3 col-form-label" for="input-custom-urls">{{ entry_custom_urls }}</label>
+              <div class="col-sm-9">
+                <textarea name="module_proteside_custom_urls" rows="4" id="input-custom-urls" class="form-control font-monospace" spellcheck="false">{{ module_proteside_custom_urls|e }}</textarea>
+                <div class="form-text">{{ help_custom_urls }}</div>
+              </div>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>{{ text_section_options }}</legend>
+            <div class="row mb-3">
+              <label class="col-sm-3 col-form-label" for="input-channel">{{ entry_channel }}</label>
+              <div class="col-sm-9">
+                <select name="module_proteside_channel" id="input-channel" class="form-select">
+                  <option value="auto"{% if module_proteside_channel == 'auto' %} selected{% endif %}>{{ text_channel_auto }}</option>
+                  <option value="stable"{% if module_proteside_channel == 'stable' %} selected{% endif %}>{{ text_channel_stable }}</option>
+                  <option value="latest"{% if module_proteside_channel == 'latest' %} selected{% endif %}>{{ text_channel_latest }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label class="col-sm-3 col-form-label" for="input-inline-rules">{{ entry_inline_rules }}</label>
+              <div class="col-sm-9">
+                <div class="form-check form-switch form-switch-lg">
+                  <input type="hidden" name="module_proteside_inline_rules" value="0"/>
+                  <input type="checkbox" name="module_proteside_inline_rules" value="1" id="input-inline-rules" class="form-check-input"{% if module_proteside_inline_rules %} checked{% endif %}/>
+                </div>
+                <div class="form-text">{{ help_inline_rules }}</div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label class="col-sm-3 col-form-label" for="input-calibration">{{ entry_calibration }}</label>
+              <div class="col-sm-9">
+                <input type="number" min="10" max="120" name="module_proteside_calibration" value="{{ module_proteside_calibration|e }}" id="input-calibration" class="form-control"/>
+                <div id="error-calibration" class="invalid-feedback"></div>
+                <div class="form-text">{{ help_calibration }}</div>
+              </div>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>{{ text_section_advanced }}</legend>
+            <div class="row mb-3">
+              <label class="col-sm-3 col-form-label" for="input-interval">{{ entry_interval }}</label>
+              <div class="col-sm-9">
+                <select name="module_proteside_interval" id="input-interval" class="form-select">
+                  {% for interval in intervals %}
+                    <option value="{{ interval.value }}"{% if interval.value == module_proteside_interval %} selected{% endif %}>{{ interval.label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label class="col-sm-3 col-form-label" for="input-deferred">{{ entry_deferred }}</label>
+              <div class="col-sm-9">
+                <div class="form-check form-switch form-switch-lg">
+                  <input type="hidden" name="module_proteside_deferred" value="0"/>
+                  <input type="checkbox" name="module_proteside_deferred" value="1" id="input-deferred" class="form-check-input"{% if module_proteside_deferred %} checked{% endif %}/>
+                </div>
+                <div class="form-text">{{ help_deferred }}</div>
+              </div>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header"><i class="fa-solid fa-stethoscope"></i> {{ text_section_diagnostics }}</div>
+      <div class="card-body">
+        <table class="table table-sm align-middle">
+          <tbody>
+            <tr><th class="w-25">{{ diag_extension_version }}</th><td>{{ ps_extension_version }}</td></tr>
+            <tr><th>{{ diag_bootstrapper_version }}</th><td>{{ ps_bootstrapper_version }}</td></tr>
+            <tr><th>{{ diag_method }}</th><td>{{ diag_method_value }}</td></tr>
+            <tr><th>{{ diag_channel }}</th><td>{{ ps_channel_in_use }}</td></tr>
+            <tr><th>{{ diag_inline_rules_count }}</th><td>{{ ps_inline_counts }}</td></tr>
+            <tr>
+              <th>{{ diag_csp_hash }}</th>
+              <td>
+                <div class="input-group">
+                  <input type="text" readonly value="{{ ps_csp_hash|e }}" id="proteside-csp" class="form-control font-monospace"/>
+                  <button type="button" class="btn btn-outline-secondary" data-proteside-copy="#proteside-csp">{{ button_copy }}</button>
+                </div>
+                <div class="form-text">{{ help_csp_hash }}</div>
+              </td>
+            </tr>
+            <tr>
+              <th>{{ diag_cron_url }}</th>
+              <td>
+                <div class="input-group">
+                  <input type="text" readonly value="{{ cron_url|e }}" id="proteside-cron" class="form-control font-monospace"/>
+                  <button type="button" class="btn btn-outline-secondary" data-proteside-copy="#proteside-cron">{{ button_copy }}</button>
+                </div>
+                <div class="form-text">{{ help_cron_url }}</div>
+                <div class="form-text">{{ diag_cron_native }}</div>
+              </td>
+            </tr>
+            <tr>
+              <th>{{ diag_verify }}</th>
+              <td>
+                <button type="button" id="proteside-probe" data-url="{{ probe }}" class="btn btn-outline-primary"><i class="fa-solid fa-magnifying-glass"></i> {{ button_probe }}</button>
+                <div id="proteside-probe-result" class="mt-2"></div>
+                <div class="form-text">{{ diag_probe_help }}</div>
+                <div class="form-text">{{ diag_verify_hint }}</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="mb-0"><a href="{{ ps_docs_url }}" target="_blank" rel="noopener">{{ text_docs }}</a> · <a href="mailto:team@proteside.com">team@proteside.com</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript"><!--
+$('[data-proteside-copy]').on('click', function() {
+    var button = $(this), input = $(button.attr('data-proteside-copy'));
+
+    input.trigger('select');
+
+    try {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(input.val());
+        } else {
+            document.execCommand('copy');
+        }
+
+        button.text('{{ text_copied|e('js') }}');
+
+        setTimeout(function() {
+            button.text('{{ button_copy|e('js') }}');
+        }, 1500);
+    } catch (e) {}
+});
+
+$('#proteside-probe').on('click', function() {
+    var button = $(this), tones = {success: 'alert-success', warning: 'alert-warning', danger: 'alert-danger'};
+
+    $.ajax({
+        url: button.attr('data-url'),
+        dataType: 'json',
+        beforeSend: function() {
+            button.prop('disabled', true);
+            $('#proteside-probe-result').html('<span class="text-muted">{{ text_checking|e('js') }}</span>');
+        },
+        complete: function() {
+            button.prop('disabled', false);
+        },
+        success: function(json) {
+            $('#proteside-probe-result').html($('<div class="alert py-2"></div>').addClass(tones[json['tone']] || 'alert-info').text(json['text']));
+        },
+        error: function(xhr, status, error) {
+            $('#proteside-probe-result').html($('<div class="alert alert-danger py-2"></div>').text(error || status));
+        }
+    });
+});
+//--></script>
+{{ footer }}
